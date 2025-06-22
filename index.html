@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Progress Tracker</title>
+</head>
+
+<style>
+
+@font-face {
+    font-family: 'monument-grotesk-bold';
+    src: url(/MonumentGrotesk/MonumentGrotesk-Bold.otf);
+}
+
+
+*{
+    box-sizing: border-box;
+    font-family: 'monument-grotesk-bold', sans-serif;
+    font-weight: 600;
+}
+
+body {
+    background-color:#ffffff;
+    margin: 0px;
+}
+
+.main--grid{
+    padding: 0px;
+    height: 100vh;
+    display: grid;
+    align-items: center;
+    justify-content: center;
+}
+
+.progress--container{
+    position: relative;
+    height: 420px;
+    width: 480px;
+    background-color: #D1D1D1;
+    display: flex;
+    align-items: end;
+    border-radius: 0px 50px 0px 0px;
+}
+
+.progress--bar{
+    height: 100%;
+    width: 0%; /* Start at 0 width for animation */
+    background-color: black;
+    display: flex;
+    align-items: end;
+    border-radius: 0px 0px 0px 50px;
+    position: relative;
+    transition: width 2s cubic-bezier(0.4, 0, 0.2, 1); /* Smooth easing */
+}
+
+.tax--bar{
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 100%;
+    background-color: #ff4444;
+    opacity: 0.8;
+    width: 0%; /* Start at 0 width */
+    transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1) 1s; /* Delay after main bar */
+}
+
+.expense--bar{
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 100%;
+    background-color: #ffa500;
+    opacity: 0.8;
+    width: 0%; /* Start at 0 width */
+    transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1) 1.5s; /* Delay after tax bar */
+}
+
+.money {
+    font-size: 23px;
+    line-height: 1;
+    margin: 16px 16px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.money.goal{
+    color: white;
+    margin-left: 30px;
+    transition-delay: 2s; /* Animate after progress bar */
+}
+
+.money.left{
+    color: black;
+    margin-left: 30px;
+    transition-delay: 2.2s; /* Animate after goal */
+}
+
+.money.animate {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.cash--point{
+    background-color: #D1D1D1;
+    height: 20px;
+    width: 20px;
+    border-radius: 100px;
+    cursor: pointer;
+    position: absolute;
+    transition: background-color 0.2s ease, transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.6s ease;
+    opacity: 0;
+    transform: scale(0) translateX(-50%);
+    transform-origin: center;
+    left: 50%;
+}
+
+.cash--point.animate {
+    opacity: 1;
+    transform: scale(1) translateX(-50%);
+}
+
+.cash--point.animate:hover {
+    transform: scale(1.2) translateX(-50%);
+}
+
+.cash--point:active {
+    background-color: rgb(142, 142, 142);
+}
+
+.project--name{
+    color: white;
+    font-family: 'Courier New', Courier, monospace;
+    visibility: hidden;
+    display: block;
+    background-color: black;
+    padding: 2px 4px;
+    position: absolute;
+    left: 30px;
+    transform: translateY(-50%);
+    white-space: nowrap;
+    border-radius: 3px;
+    font-size: 12px;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.project--container{
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    background-color: transparent;
+    transition: background-color 0.3s ease;
+}
+
+.dot--red {
+    height: 58px;
+    width: 58px;
+    border-radius: 1000px;
+    background-color: red;
+    position: fixed;
+    z-index: 100;
+    top: 20px;
+    left: 18px;
+    opacity: 0;
+    transform: scale(0);
+    animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.5s forwards;
+}
+
+@keyframes popIn {
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+
+.label--container{
+    background-color: #ffffff;
+    height: auto;
+    width: 100px;
+    position: fixed;
+    top: 38vh;
+    left: 20px;
+}
+
+
+.label{
+    color: white;
+    background-color: rgb(0, 0, 0);
+    padding: 6px 10px;
+    width: fit-content;
+    opacity: 0;
+    transform: translateX(-20px);
+    animation: slideIn 0.6s ease 0.8s forwards;
+}
+
+.label.left{
+    color: black;
+    background-color: #D1D1D1;
+
+    animation-delay: 1s;
+}
+
+.label.tax{
+    color: white;
+    background-color:#ff4444;
+
+    animation-delay: 1.2s;
+}
+
+.label.business{
+    color: black;
+    background-color:#ffa500;
+
+    animation-delay: 1.4s;
+}
+
+@keyframes slideIn {
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.cash-for-vivi{
+    font-size: 40px;
+    position: fixed;
+    top: 20px;
+    right: 30px;
+    line-height: 1;
+    letter-spacing: -1px;
+    text-align: right;
+    opacity: 0;
+    transform: translateY(-20px);
+    animation: fadeInDown 1s ease 0.2s forwards;
+}
+
+@keyframes fadeInDown {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    }
+
+/* Mobile styles for screens below 700px */
+@media (max-width: 700px) {
+    .main--grid {
+        padding: 10px;
+    }
+    
+    .progress--container {
+        height: 300px;
+        width: 95vw;
+        border-radius: 0px 30px 0px 0px;
+    }
+    
+    .progress--bar {
+        border-radius: 0px 0px 0px 30px;
+    }
+    
+    .money {
+        font-size: 18px;
+        margin: 12px 12px;
+    }
+    
+    .money.goal {
+        margin-left: 20px;
+    }
+    
+    .money.left {
+        margin-left: 20px;
+    }
+    
+    .cash--point {
+        height: 16px;
+        width: 16px;
+    }
+    
+    .project--name {
+        font-size: 10px;
+        left: 20px;
+        padding: 1px 3px;
+        max-width: 200px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .dot--red {
+        height: 40px;
+        width: 40px;
+        top: 15px;
+        left: 15px;
+    }
+    
+    .label {
+        padding: 4px 8px;
+        font-size: 12px;
+
+        height: 30px;
+
+    }
+    
+
+    
+    .cash-for-vivi {
+        font-size: 24px;
+        top: 15px;
+        right: 20px;
+        line-height: 1.1;
+    }
+}
+
+
+
+</style>
+
+<body>
+
+    <h1 class="cash-for-vivi">money for buy <br> vivi nice tings</h1>
+
+    <div class="dot--red"></div>
+    <div class="label--container">
+        <p class="label earned">Earned </p>
+        <p class="label left">Left </p>
+        <p class="label tax">tax </p>
+        <p class="label business">cost </p>
+    </div>
+
+    <section class="main--grid">
+        <div class="progress--container">
+            <div class="progress--bar">
+                <h6 class="money goal">20'000</h6>
+            </div>
+            <h6 class="money left">10'000</h6>
+        </div>
+    </section>
+
+    <script>
+        // Configuration
+        const moneyGoal = 30000;
+        
+        // Projects array
+        let projectsCompleted = [
+            {name: 'sven website', cash: 2000, link: 'https://unkreativist-7488ba.webflow.io/', month: 7},
+            {name: 'fladapla', cash: 3000, month: 7 , link: 'https://www.flachdachplanung.ch/'} ,
+            {name: 'visitecharte', cash: 200, month: 7},
+            {name: 'Jahrbuch Meilen', cash: 5000, month: 8},
+            {name: 'Bushvibe', cash: 1000, month: 8},
+            {name: 'pretend', cash: 4000, month: 3},
+        ];
+        
+        // Sort projects by month
+        projectsCompleted.sort((a, b) => a.month - b.month);
+        
+        // Get DOM elements
+        const progressBarDOM = document.querySelector('.progress--bar');
+        const moneyGoalDOM = document.querySelector('.money.goal');
+        const moneyLeftDOM = document.querySelector('.money.left');
+        const progressContainerDOM = document.querySelector('.progress--container');
+        
+        // Calculate total earned and deductions
+        let grossEarned = 0;
+        let totalTaxes = 0;
+        let totalExpenses = 0;
+        
+        projectsCompleted.forEach(project => {
+            grossEarned += project.cash;
+            totalTaxes += project.cash * 0.05; // 5% taxes
+            totalExpenses += project.cash * 0.20; // 20% business expenses
+        });
+        
+        let netEarned = grossEarned - totalTaxes - totalExpenses; // Net amount toward goal
+        let moneyLeft = moneyGoal - netEarned;
+        
+        // Calculate progress widths
+        let netProgressWidth = (netEarned / moneyGoal) * 100;
+        let taxProgressWidth = (totalTaxes / moneyGoal) * 100;
+        let expenseProgressWidth = (totalExpenses / moneyGoal) * 100;
+        
+        // Update money displays
+        moneyGoalDOM.innerText = netEarned.toLocaleString();
+        moneyLeftDOM.innerText = Math.max(0, moneyLeft).toLocaleString();
+        
+        // Create project points (based on net earnings)
+        let cumulativeNet = 0;
+        const projectElements = [];
+        
+        projectsCompleted.forEach((project, index) => {
+            // Calculate net cash for this project
+            const projectTax = project.cash * 0.05;
+            const projectExpense = project.cash * 0.20;
+            const projectNet = project.cash - projectTax - projectExpense;
+            
+            // Calculate position based on cumulative net cash
+            const startPercentage = (cumulativeNet / moneyGoal) * 100;
+            const projectPercentage = (projectNet / moneyGoal) * 100;
+            
+            // Update cumulative net cash for next iteration
+            cumulativeNet += projectNet;
+            
+            // Create container that spans the full height and project width
+            const container = document.createElement('div');
+            container.classList.add('project--container');
+
+            const monthArray = ['zero' , 'Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+            
+            // Create project name tooltip
+            const projectName = document.createElement('h5');
+            projectName.innerText = `${project.cash.toLocaleString()} (Net: ${projectNet.toLocaleString()}) - ${project.name} ${monthArray[project.month]}`;
+            projectName.classList.add('project--name');
+            
+            // Create project point
+            const projectPoint = document.createElement('div');
+            projectPoint.classList.add('cash--point');
+            
+            // Position the container
+            const containerWidth = progressContainerDOM.clientWidth;
+            const containerHeight = progressContainerDOM.clientHeight;
+            
+            // Position the container to span its proportional width
+            const containerLeftPosition = (startPercentage / 100) * containerWidth;
+            const containerWidthPx = (projectPercentage / 100) * containerWidth;
+            
+            container.style.left = `${containerLeftPosition}px`;
+            container.style.top = `0px`;
+            container.style.width = `${containerWidthPx}px`;
+            
+            // Position the point based on the month (1-12 mapped to container height)
+            const monthPosition = ((project.month - 1) / 11) * (containerHeight - 60); // -60 for padding
+            const pointTopPosition = 30 + monthPosition;
+            
+            projectPoint.style.position = 'absolute';
+            projectPoint.style.top = `${pointTopPosition}px`; // 30px top padding
+            
+            // Position the project name at the same height as the point
+            projectName.style.top = `${pointTopPosition}px`;
+            
+            // Track tooltip state for mobile
+            let tooltipVisible = false;
+            
+            // Desktop hover events (only for non-touch devices)
+            if (!('ontouchstart' in window)) {
+                projectPoint.addEventListener('mouseenter', () => {
+                    projectName.style.visibility = 'visible';
+                    container.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+                });
+                
+                projectPoint.addEventListener('mouseleave', () => {
+                    projectName.style.visibility = 'hidden';
+                    container.style.backgroundColor = 'transparent';
+                });
+            }
+            
+            // Click/touch events
+            projectPoint.addEventListener('click', (e) => {
+                e.preventDefault();
+                
+                // On touch devices (mobile)
+                if ('ontouchstart' in window) {
+                    if (!tooltipVisible) {
+                        // First click: show tooltip
+                        projectName.style.visibility = 'visible';
+                        container.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+                        tooltipVisible = true;
+                        
+                        // Hide other tooltips
+                        document.querySelectorAll('.project--name').forEach(tooltip => {
+                            if (tooltip !== projectName) {
+                                tooltip.style.visibility = 'hidden';
+                            }
+                        });
+                        document.querySelectorAll('.project--container').forEach(cont => {
+                            if (cont !== container) {
+                                cont.style.backgroundColor = 'transparent';
+                            }
+                        });
+                        
+                        // Reset other tooltip states
+                        projectElements.forEach((point, idx) => {
+                            if (point !== projectPoint) {
+                                point.tooltipVisible = false;
+                            }
+                        });
+                        
+                    } else {
+                        // Second click: open link and hide tooltip
+                        if (project.link) {
+                            window.open(project.link, '_blank');
+                        }
+                        projectName.style.visibility = 'hidden';
+                        container.style.backgroundColor = 'transparent';
+                        tooltipVisible = false;
+                    }
+                } else {
+                    // Desktop: direct link opening
+                    if (project.link) {
+                        window.open(project.link, '_blank');
+                    }
+                }
+            });
+            
+            // Store tooltip state on the element
+            projectPoint.tooltipVisible = tooltipVisible;
+            
+            // Add click outside to hide tooltip on mobile
+            if ('ontouchstart' in window) {
+                document.addEventListener('click', (e) => {
+                    if (!container.contains(e.target)) {
+                        projectName.style.visibility = 'hidden';
+                        container.style.backgroundColor = 'transparent';
+                        projectPoint.tooltipVisible = false;
+                    }
+                });
+            }
+            
+            // Set cursor based on device
+            if (project.link) {
+                projectPoint.style.cursor = 'pointer';
+            }
+            
+            // Append elements
+            container.appendChild(projectPoint);
+            container.appendChild(projectName);
+            progressContainerDOM.appendChild(container);
+            
+            // Store for animation
+            projectElements.push(projectPoint);
+        });
+        
+        // Animation function
+        function startAnimations() {
+            // Animate progress bar first
+            setTimeout(() => {
+                progressBarDOM.style.width = `${netProgressWidth}%`;
+            }, 800);
+            
+            // Create and animate tax bar
+            setTimeout(() => {
+                const taxBar = document.createElement('div');
+                taxBar.classList.add('tax--bar');
+                taxBar.style.right = `-${taxProgressWidth}%`;
+                progressBarDOM.appendChild(taxBar);
+                
+                // Trigger animation
+                setTimeout(() => {
+                    taxBar.style.width = `${taxProgressWidth}%`;
+                }, 50);
+            }, 1800);
+            
+            // Create and animate expense bar
+            setTimeout(() => {
+                const expenseBar = document.createElement('div');
+                expenseBar.classList.add('expense--bar');
+                expenseBar.style.right = `-${taxProgressWidth + expenseProgressWidth}%`;
+                progressBarDOM.appendChild(expenseBar);
+                
+                // Trigger animation
+                setTimeout(() => {
+                    expenseBar.style.width = `${expenseProgressWidth}%`;
+                }, 50);
+            }, 2300);
+            
+            // Animate money text
+            setTimeout(() => {
+                moneyGoalDOM.classList.add('animate');
+                moneyLeftDOM.classList.add('animate');
+            }, 2800);
+            
+            // Animate project points with stagger
+            projectElements.forEach((point, index) => {
+                setTimeout(() => {
+                    point.classList.add('animate');
+                }, 3200 + (index * 200)); // 200ms stagger between each point
+            });
+        }
+        
+        // Start animations when page loads
+        window.addEventListener('load', () => {
+            setTimeout(startAnimations, 500); // Small delay to ensure everything is rendered
+        });
+        
+        console.log(`Gross earned: ${grossEarned.toLocaleString()}`);
+        console.log(`Total taxes (5%): ${totalTaxes.toLocaleString()}`);
+        console.log(`Total expenses (20%): ${totalExpenses.toLocaleString()}`);
+        console.log(`Net earned: ${netEarned.toLocaleString()}`);
+        console.log(`Money left: ${Math.max(0, moneyLeft).toLocaleString()}`);
+        console.log(`Net progress: ${netProgressWidth.toFixed(1)}%`);
+    </script>
+</body>
+</html>
